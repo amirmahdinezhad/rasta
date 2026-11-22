@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "feedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-release.json",
+  "publicKey": "ctNmSUXlU8fVM+DeuQK/UDCdSwlPcIDYG7Gn0JLSE98=",
+  "supportedAppVersions": [
+    "26.1027.61615"
+  ],
+  "supportedT3Versions": [
+    "0.1.6",
+    "0.1.7",
+    "0.1.8"
+  ],
+  "t3FeedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-t3-release.json",
+  "antigravityFeedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-antigravity-release.json",
+  "claudeFeedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-claude-release.json",
+  "opencodeFeedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-opencode-release.json",
+  "zcodeFeedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-zcode-release.json",
+  "grokbotFeedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-grokbot-release.json",
+  "geminiFeedUrl": "https://github.com/amirmahdinezhad/rasta/releases/latest/download/rasta-gemini-release.json"
+}

@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The published OpenAI appcast Ed25519 verification key is public."
+condition = "AND"
+paths = ['''(?:^|/)bin/lib/update-feed\.js$''']
+regexTarget = "match"
+regexes = ['''^VENDOR_KEY = 'mNfr1v9t63BfgDtlw4C8lRvSY6uMggIXABDOCi3tS6k='$''']

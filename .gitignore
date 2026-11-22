@@ -1,0 +1,15 @@
+node_modules/
+dist/
+codex-preview/
+*.pem
+*.p12
+.DS_Store
+bin/assets/rasta-ui
+.env*
+*.tgz
+npm-debug.log*
+coverage/
+
+bin/assets/rasta-ui
+
+.impeccable/review/

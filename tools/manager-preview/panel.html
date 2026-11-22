@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" class="dark"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rasta panel preview</title>
+<style>body{margin:0;background:#141414;color:#f2f2f2;font:14px system-ui;min-height:100vh}main{max-width:700px;margin:80px auto;padding:24px}header{color:#a3a3a3}button,a{color:inherit}nav{display:flex;gap:16px;margin:24px 0}button{border:1px solid #444;border-radius:10px;background:#242424;padding:8px 12px}article{padding:24px;background:#1c1c1c;border-radius:20px}</style>
+<main><header id="preview-host"></header><h1 id="preview-title">Compact Rasta panel</h1><p>Open the small Rasta button at the bottom right. These controls simulate the host connection and never change installed apps.</p>
+<nav><button id="theme">Switch appearance</button><button id="active">Toggle reading support</button><button id="update">Toggle update availability</button><button id="surface">Show simulated settings</button><a href="/">Main Rasta preview</a></nav>
+<section id="chat"><article data-markdown-text-style="assistant-message" class="chat-markdown"><p>Changes in your reading preferences appear here without restarting.</p></article><p><textarea aria-label="Message" placeholder="Simulated composer"></textarea></p></section>
+<section id="settings" hidden><label>Search settings <input type="search"></label></section><p id="result" role="status"></p></main>
+<script>window.rastaModernUI = true;</script>
+<script type="module">
+import { readingDefaults } from '@rasta-preview-bridge';
+import * as connectionPanel from '/src/ConnectionPanel.tsx';
+window.RastaConnectionPanel = connectionPanel;
+const hosts = new Map([['codex', 'Codex'], ['t3', 'T3 Code'], ['antigravity', 'Antigravity'], ['opencode', 'OpenCode']]);
+const requestedHost = new URLSearchParams(location.search).get('host');
+const host = hosts.has(requestedHost) ? requestedHost : 'codex';
+const hostName = hosts.get(host);
+const chat = document.getElementById('chat');
+const settings = document.getElementById('settings');
+const surfaceButton = document.getElementById('surface');
+surfaceButton.onclick = () => {
+  chat.hidden = !chat.hidden;
+  settings.hidden = !chat.hidden;
+  surfaceButton.textContent = chat.hidden ? 'Show simulated chat' : 'Show simulated settings';
+};
+const composer = document.querySelector('textarea');
+if (host === 'codex') composer.setAttribute('data-codex-composer', '');
+if (host === 't3') composer.setAttribute('data-chat-composer-main-surface', '');
+if (host === 'antigravity') document.querySelector('article').dataset.testid = 'agent-response';
+if (host === 'opencode') {
+  document.querySelector('article').dataset.component = 'markdown';
+  composer.dataset.component = 'prompt-input';
+}
+document.getElementById('preview-host').textContent = 'UI preview · Simulated ' + hostName + ' connection';
+if (host === 'antigravity') document.getElementById('preview-title').textContent = 'Rasta shortcut in Antigravity';
+const readingKey = 'rasta-preview-reading-' + host;
+Object.defineProperty(window, 'demoReading', { get: () => ({...readingDefaults, ...JSON.parse(localStorage.getItem(readingKey) || '{}')}), set: value => localStorage.setItem(readingKey, JSON.stringify(value)) });
+window.demoUpdate = false;
+const report = () => window.dispatchEvent(new Event('focus'));
+const update = () => ({available:window.demoUpdate,release:window.demoUpdate?{agentVersion:'2.0.0'}:null});
+const change = (action, input) => window.rastaPreview({action, target:host, input});
+window.rastaNative = {preferences:()=>change('preferences'),saveReading:async(key,value)=>(await change('reading-save',{[key]:value})).reading,status:async()=>({update:update()}),check:async()=>{await new Promise(r=>setTimeout(r,700));return update()},openManager:async(view)=>{
+    window.demoView = view;
+    const destination = host === 'antigravity' ? (view === 'reading' ? 'Reading' : 'Installation') + ' for ' + hostName : 'the ' + hostName + ' page';
+    document.getElementById('result').textContent = 'Simulated: opened ' + destination + ' in Rasta.';
+}};
+window.rastaNative.selectFont = id => change('font-select', {id});
+window.rastaNative.removeFont = id => change('font-remove', {id});
+window.rastaNative.importFont = (name, data) => change('font-import', {name, data});
+document.getElementById('theme').onclick=()=>document.documentElement.classList.toggle('dark');
+document.getElementById('active').onclick=()=>{window.demoReading={...window.demoReading,isRTL:!window.demoReading.isRTL};report()};
+document.getElementById('update').onclick=()=>{window.demoUpdate=!window.demoUpdate;report()};
+const payload = document.createElement('script');
+payload.src = '/panel-preview/payload.js?host=' + host;
+document.body.append(payload);
+</script></html>

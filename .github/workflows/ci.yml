@@ -1,0 +1,40 @@
+name: Test Rasta
+on:
+  push:
+    branches: [main, develop, 'codex/**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.3'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            ui/manager/package-lock.json
+      - run: npm ci
+      - run: npm --prefix ui/manager ci
+      - run: brew install gitleaks
+      - run: npm run security:check
+      - run: npm test
+      - run: npm --prefix ui/manager run typecheck
+      - run: npm run build:panel-ui
+      - run: git diff --exit-code -- bin/panel/panel.js
+      - run: npm run test:gui
+      - run: ARTL_TEST_TARGET=t3 node test/gui-electron-smoke.mjs
+      - run: npm run test:desktop
+      - run: npm run test:antigravity
+      - if: runner.arch == 'ARM64'
+        run: npm run test:gemini

@@ -1,0 +1,5 @@
+body { padding-bottom:24px; }
+.preview-tools { position:relative; margin:12px auto 24px; width:max-content; max-width:calc(100% - 24px); padding:10px 14px; background:var(--surface); color:var(--text); border:1px solid var(--line); border-radius:12px; font:12px/1.5 -apple-system,BlinkMacSystemFont,sans-serif; }
+.preview-tools summary { cursor:pointer; color:var(--muted); }
+.preview-tools .preview-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-top:10px; }
+.preview-tools select,.preview-tools button { min-height:34px; font-size:12px; }

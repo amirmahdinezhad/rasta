@@ -1,0 +1,171 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+@custom-variant keyboard (&:is([data-keyboard=true] *));
+@custom-variant keyboard-focus (&:is(:focus-visible, [data-keyboard=true] :focus));
+
+/* WebKit can skip backdrop-filter on the modal overlay. Blur the manager
+   surface and any earlier dialog directly, keeping the top portal sharp. */
+body:has(> :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"])) > #root,
+body > :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]):has(~ :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"])) {
+  @apply blur-[3px];
+}
+
+/* Shared shadcn theme tokens and bundled fonts. */
+:root, :host {
+  --background: #ededed;
+  --foreground: #242424;
+  --surface: #f7f7f7;
+  --card: #ffffff;
+  --card-foreground: #242424;
+  --popover: #ffffff;
+  --popover-foreground: #242424;
+  --popover-border: rgb(0 0 0 / 0.12);
+  --primary: #303030;
+  --primary-foreground: #ffffff;
+  --secondary: #ededed;
+  --secondary-foreground: #303030;
+  --muted: #f1f1f1;
+  --muted-foreground: #606060;
+  --accent: #e8e8e8;
+  --accent-foreground: #242424;
+  --destructive: #b54343;
+  --border: #e2e2e2;
+  --input: #939393;
+  --ring: #737373;
+  --radius: 1rem;
+  --segment-track: #e2e2e2;
+  --segment-selection: rgb(255 255 255 / 0.12);
+  --segment-sheen: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.24),
+    rgb(255 255 255 / 0.035) 38%,
+    rgb(255 255 255 / 0.015) 62%,
+    rgb(255 255 255 / 0.12)
+  );
+  --segment-edge: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.64),
+    rgb(255 255 255 / 0.052) 45%,
+    rgb(255 255 255 / 0.58)
+  );
+  --segment-edge-fade: linear-gradient(
+    90deg,
+    transparent,
+    #000 28%,
+    #000 72%,
+    transparent
+  );
+  --segment-shadow: 0 2px 6px rgb(0 0 0 / 0.065);
+  --reading-tray: #e1e1e1;
+  --panel-control-focus: #dedede;
+  --motion-fast: 120ms;
+  --motion-ui: 180ms;
+  --motion-hover: 200ms;
+  --motion-popup: 220ms;
+  --motion-exit: 140ms;
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-control: 0 1px 3px rgb(0 0 0 / 0.09);
+  --shadow-panel: 0 4px 16px -8px rgb(0 0 0 / 0.12);
+  --shadow-popover:
+    0 4px 8px -2px rgb(0 0 0 / 0.12), 0 12px 28px -4px rgb(0 0 0 / 0.16);
+  --shadow-dialog:
+    0 8px 18px -12px rgb(0 0 0 / 0.14), 0 24px 48px -24px rgb(0 0 0 / 0.24);
+}
+.dark {
+  --background: #0c0c0c;
+  --foreground: #f2f2f2;
+  --surface: #141414;
+  --card: #1c1c1c;
+  --card-foreground: #f2f2f2;
+  --popover: #242424;
+  --popover-foreground: #f2f2f2;
+  --popover-border: rgb(255 255 255 / 0.12);
+  --primary: #e8e8e8;
+  --primary-foreground: #202020;
+  --secondary: #2a2a2a;
+  --secondary-foreground: #f2f2f2;
+  --muted: #242424;
+  --muted-foreground: #a3a3a3;
+  --accent: #303030;
+  --accent-foreground: #f2f2f2;
+  --destructive: #f3a3a3;
+  --border: #333333;
+  --input: #6c6c6c;
+  --ring: #a3a3a3;
+  --segment-track: #191919;
+  --segment-selection: rgb(255 255 255 / 0.04);
+  --segment-sheen: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.09),
+    rgb(255 255 255 / 0.02) 38%,
+    rgb(255 255 255 / 0.01) 62%,
+    rgb(255 255 255 / 0.045)
+  );
+  --segment-edge: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.34),
+    rgb(255 255 255 / 0.016) 45%,
+    rgb(255 255 255 / 0.18)
+  );
+  --segment-shadow: 0 2px 6px rgb(0 0 0 / 0.22);
+  --reading-tray: color-mix(in srgb, var(--muted) 65%, transparent);
+  --panel-control-focus: #3e3e3e;
+  --shadow-control: 0 1px 3px rgb(0 0 0 / 0.24);
+  --shadow-panel:
+    0 4px 16px -8px rgb(0 0 0 / 0.32), inset 0 1px 0 rgb(255 255 255 / 0.035);
+  --shadow-popover:
+    0 4px 8px -2px rgb(0 0 0 / 0.3), 0 12px 28px -4px rgb(0 0 0 / 0.45);
+  --shadow-dialog:
+    inset 0 1px 0 rgb(255 255 255 / 0.1), 0 8px 16px -8px rgb(0 0 0 / 0.3),
+    0 32px 64px -24px rgb(0 0 0 / 0.7);
+}
+@theme inline {
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  /* A clipped highlight moves across each skeleton without fading its shape. */
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    75%, 100% { transform: translateX(100%); }
+  }
+  --color-surface: var(--surface);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+@font-face {
+  font-family: Vazir;
+  src: url("../../../bin/assets/Vazir-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  /* Neat Icons sets the stroke on each shape, so the SVG root cannot set its weight. */
+  :where(svg[viewBox="0 0 24 24"]) [stroke="currentColor"][stroke-width] {
+    stroke-width: 2.15;
+  }
+}

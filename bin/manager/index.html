@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'">
+<title>Rasta</title><link rel="icon" type="image/svg+xml" href="../assets/rasta-mark.svg"><link rel="stylesheet" href="manager.css">
+</head>
+<body>
+<div class="shell">
+<main>
+    <header class="app-header"><button class="wordmark" id="apps-nav" aria-label="Rasta connections"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" stroke="none" d="M7 6h19v5H7a2.5 2.5 0 0 1 0-5Zm6 8h13v5H13a2.5 2.5 0 0 1 0-5Zm6 8h7v5h-7a2.5 2.5 0 0 1 0-5Z"/></svg><span>Rasta</span></button><div class="header-actions"><button class="icon-button" id="refresh" aria-label="Check for updates" title="Check for updates"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.1 8a7.5 7.5 0 0 1 12.4-3L20 8M4 16l2.5 3A7.5 7.5 0 0 0 19 16"/></svg><span>Check updates</span></button><button class="icon-button" id="settings-nav" aria-label="Rasta settings" title="Rasta settings" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h2m6 0h10M3 18h2m6 0h10M3 12h10m6 0h2"/><circle cx="8" cy="6" r="3"/><circle cx="16" cy="12" r="3"/><circle cx="8" cy="18" r="3"/></svg><span>Settings</span></button></div></header>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <section id="apps-view">
+        <div class="page-heading"><div><span class="eyebrow">MADE FOR YOUR MAC</span><h1>A home for your connections.</h1><p>The apps you use. The reading experience you choose.</p></div><span class="privacy-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></svg>Local &amp; private</span></div><div class="section-heading"><h2>Your apps</h2><span id="count" class="connection-count">Finding your apps…</span></div>
+        <div class="app-list" id="app-list" aria-label="App connections"></div><section class="detail" id="detail" aria-live="polite" hidden></section>
+        <footer><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z"/><path d="m8 12 3 3 5-6"/></svg><span>Your fonts stay on this Mac. Your preferences stay with each app.</span></footer>
+    </section>
+    <section id="settings-view" hidden><button id="back-apps" class="back-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6M8 12h13"/></svg>Back to apps</button><div class="page-heading"><h1>Settings</h1><p id="core-version"></p></div>
+        <div class="settings-section"><h2>Rasta updates</h2><p>Your app connections update independently.</p><button id="core-update">Check for Rasta update</button><div id="core-operation" role="status" hidden></div></div>
+        <div class="settings-section"><h2>Remove Rasta</h2><p>Restore each connected app, then clear Rasta’s settings and downloaded connections.</p><button class="danger" id="remove-all">Remove connections and Rasta data</button></div>
+    </section>
+</main>
+</div>
+<dialog id="confirm"><form method="dialog"><h2 id="confirm-title"></h2><p id="confirm-copy"></p><div class="dialog-actions"><button value="cancel">Cancel</button><button class="primary" id="confirm-ok" value="confirm">Continue</button></div></form></dialog>
+<input type="file" id="font-file" accept=".ttf,.otf" aria-label="Choose font file" hidden>
+<script src="manager.js"></script>
+</body></html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rasta message direction preview</title>
+<style>
+    :root { color-scheme: light; --page: #f6f6f6; --card: #fff; --text: #242424; --muted: #606060; --line: #dedede; }
+    :root.dark { color-scheme: dark; --page: #141414; --card: #1c1c1c; --text: #f2f2f2; --muted: #ababab; --line: #3f3f3f; }
+    body { margin: 0; padding: clamp(16px, 5vw, 48px); background: var(--page); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
+    main { max-width: 600px; margin: auto; }
+    header { color: var(--muted); }
+    h1 { color: var(--text); font-size: 24px; margin: 12px 0 6px; }
+    .preview-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin: 16px 0 24px; }
+    .preview-actions button { border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: inherit; padding: 6px 12px; font: inherit; cursor: pointer; }
+    a { color: inherit; }
+    article { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    article p { margin: 0 0 12px; }
+</style>
+<main data-app-shell-main-surface="default">
+    <header>
+        <span id="preview-host">Simulated Codex conversation</span>
+        <h1>Message direction</h1>
+        <p>Hover over the response or Tab to its button, then activate it to switch alignment.</p>
+        <p>Open the Rasta panel and turn on Force RTL to apply right-to-left direction to the whole conversation.</p>
+    </header>
+    <nav class="preview-actions">
+        <button type="button" id="appearance">Switch appearance</button>
+        <a href="/?preview=message-directions">Codex</a>
+        <a href="/?preview=message-directions&amp;host=t3">T3 Code</a>
+        <a href="/?preview=message-directions&amp;host=antigravity">Antigravity</a>
+        <a href="/?preview=message-directions&amp;host=zcode">ZCode</a>
+        <a href="/">Main Rasta preview</a>
+    </nav>
+    <div data-app-shell-focus-area="main">
+        <div class="thread-scroll-container">
+            <article data-response-annotation-conversation="preview-direction" data-response-annotation-target="example">
+                <div data-markdown-text-style="assistant-message">
+                    <p lang="fa">این یک پیام نمونه برای بررسی چیدمان متن فارسی است.</p>
+                    <p>This English paragraph moves with the rest of the message.</p>
+                </div>
+            </article>
+        </div>
+    </div>
+</main>
+<script type="module">
+    import '@rasta-preview-bridge';
+    import * as connectionPanel from '/src/ConnectionPanel.tsx';
+    window.rastaModernUI = true;
+    window.RastaConnectionPanel = connectionPanel;
+    document.getElementById('appearance').onclick = () => document.documentElement.classList.toggle('dark');
+    const target = new URLSearchParams(location.search).get('host');
+    const host = ['t3', 'antigravity', 'zcode'].includes(target) ? target : 'codex';
+    const change = (action, input) => window.rastaPreview({ action, target: host, input });
+    window.rastaNative = {
+        preferences: () => change('preferences'),
+        saveReading: async (key, value) => (await change('reading-save', { [key]: value })).reading,
+        selectFont: id => change('font-select', { id }),
+        removeFont: id => change('font-remove', { id }),
+        importFont: (name, data) => change('font-import', { name, data }),
+        status: async () => ({}),
+        check: async () => ({}),
+        openManager: () => location.assign('/'),
+    };
+    const conversationId = host === 't3' ? 'preview-t3-direction' : 'preview-direction';
+    if (host === 't3') {
+        document.getElementById('preview-host').textContent = 'Simulated T3 Code conversation';
+        document.querySelector('.thread-scroll-container').classList.add('messages-timeline-scroll');
+        document.querySelector('article').dataset.responseAnnotationConversation = conversationId;
+    } else if (host === 'antigravity') {
+        document.getElementById('preview-host').textContent = 'Simulated Antigravity conversation';
+        document.querySelector('article').dataset.testid = 'agent-response';
+    } else if (host === 'zcode') {
+        document.getElementById('preview-host').textContent = 'Simulated ZCode conversation';
+        document.documentElement.classList.add('dark');
+        const row = document.querySelector('article');
+        row.classList.add('group/assistant-row');
+        row.dataset.rowId = 'example';
+        row.parentElement.dataset.turnId = 'preview-turn';
+        row.parentElement.dataset.turnKey = 'preview-turn';
+        row.firstElementChild.removeAttribute('data-markdown-text-style');
+        row.firstElementChild.setAttribute('data-conversation-selectable', 'true');
+    }
+    const payload = document.createElement('script');
+    payload.src = "/panel-preview/payload.js?host=codex";
+    payload.onload = () => window.dispatchEvent(new CustomEvent('codex-message-from-view', {
+        detail: {
+            type: 'app-shell-shortcut-state-changed',
+            quickChatAppshotThreadTarget: { conversationId, hostId: 'local' },
+        },
+    }));
+    document.body.append(payload);
+</script>
+</html>

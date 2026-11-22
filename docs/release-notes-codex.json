@@ -1,0 +1,5 @@
+[
+  "Keep Developer and standard Rasta apps separate, with independent manager update feeds.",
+  "Download the latest selected-channel package; never silently install an older cached version.",
+  "Show the update channel and each app's installed Rasta version in Library."
+]

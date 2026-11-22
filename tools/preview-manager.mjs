@@ -1,0 +1,10 @@
+import { createServer } from '../ui/manager/node_modules/vite/dist/node/index.js';
+import { fileURLToPath } from 'node:url';
+const root = fileURLToPath(new URL('../ui/manager/', import.meta.url));
+const server = await createServer({ root, configFile: root + 'vite.config.ts' });
+await server.listen();
+console.log('Rasta manager · shadcn/ui + Tailwind · Simulated connections only');
+server.printUrls();
+const close = async () => { await server.close(); process.exit(0); };
+process.on('SIGINT', close);
+process.on('SIGTERM', close);

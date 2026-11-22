@@ -1,0 +1,79 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { resolveCodexApp } from '../bin/lib/codex.js';
+import { copyPackage, copyPortableNode } from '../bin/lib/gui-runtime.js';
+import { targetDefinition, targetReleaseConfiguration } from '../bin/lib/targets.js';
+import { edKey, trustedURL } from '../bin/lib/update-feed.js';
+import { buildGeminiLibrary } from './build-gemini-library.mjs';
+const root = fileURLToPath(new URL('../', import.meta.url));
+const target = targetDefinition(process.env.ARTL_TARGET || 'codex');
+if (target.available === false) throw Error(target.reason);
+const output = process.env.ARTL_GUI_OUTPUT ? path.resolve(process.env.ARTL_GUI_OUTPUT) : path.join(root, `dist/${target.setup}`);
+const helper = path.join(root, 'bin/assets/rasta-ui');
+const identity = process.env.ARTL_CODESIGN_IDENTITY || '-';
+const architecture = process.env.ARTL_BUILD_ARCH || (process.arch === 'arm64' ? 'arm64' : 'x86_64');
+if (!['arm64', 'x86_64'].includes(architecture)) throw Error('Unsupported build architecture.');
+const localCandidate = process.env.ARTL_LOCAL_CANDIDATE === '1';
+if (localCandidate && (process.env.ARTL_RELEASE_FEED || process.env.ARTL_RELEASE_PUBLIC_KEY))
+    throw new Error('A local candidate cannot also override the release feed.');
+execFileSync('/usr/bin/xcrun', ['swiftc', '-swift-version', '5', '-target', `${architecture}-apple-macosx13.5`, architecture === 'x86_64' ? '-Osize' : '-O', path.join(root, 'native/RastaPackageTool.swift'), '-o', helper], { stdio: 'inherit' });
+execFileSync('/usr/bin/codesign', ['--force', '--sign', identity, '--options', 'runtime', helper]);
+fs.rmSync(output, { recursive: true, force: true });
+const runtime = path.join(output, 'Contents/Resources/runtime'); fs.mkdirSync(runtime, { recursive: true });
+execFileSync('/usr/bin/env', ['npm', '--prefix', path.join(root, 'ui/manager'), 'run', 'build', '--', '--mode', 'panel'], { stdio: 'inherit' });
+copyPackage(runtime, { releaseBuildId: process.env.ARTL_RELEASE_BUILD_ID });
+if (target.id === 'gemini') {
+    const nativeLibrary = path.join(runtime, 'bin/assets/rasta-gemini.dylib');
+    buildGeminiLibrary(nativeLibrary, architecture);
+    execFileSync('/usr/bin/codesign', ['--force', '--sign', identity, '--options', 'runtime', nativeLibrary]);
+}
+// Only the manager needs its Library interface.
+fs.rmSync(path.join(runtime, 'bin/manager'), { recursive: true, force: true });
+{
+    const configPath = path.join(runtime, 'bin/release-config.json');
+    const config = JSON.parse(fs.readFileSync(configPath));
+    const targetConfig = targetReleaseConfiguration(config, target.id);
+    if (process.env.ARTL_RELEASE_BUILD_ID) targetConfig.libraryUpdatesOnly = true;
+    fs.writeFileSync(configPath, JSON.stringify(targetConfig, null, 2) + '\n');
+}
+if (localCandidate) {
+    // Test this embedded runtime without a GitHub release taking over the job.
+    // Official Codex checks, signing, integrity and Launch approval still apply.
+    const configPath = path.join(runtime, 'bin/release-config.json');
+    const config = JSON.parse(fs.readFileSync(configPath));
+    fs.writeFileSync(configPath, JSON.stringify({ ...config, feedUrl: null, localCandidate: true }, null, 2) + '\n');
+}
+if (process.env.ARTL_RELEASE_FEED || process.env.ARTL_RELEASE_PUBLIC_KEY) {
+    const feedUrl = trustedURL(process.env.ARTL_RELEASE_FEED, 'release').href;
+    edKey(process.env.ARTL_RELEASE_PUBLIC_KEY);
+    const configPath = path.join(runtime, 'bin/release-config.json');
+    const config = JSON.parse(fs.readFileSync(configPath));
+    delete config.privateRepository;
+    fs.writeFileSync(configPath, JSON.stringify({ ...config, feedUrl, publicKey: process.env.ARTL_RELEASE_PUBLIC_KEY }, null, 2) + '\n');
+}
+const bundled = resolveCodexApp();
+const node = process.env.ARTL_PORTABLE_NODE || (bundled && path.join(bundled.app, 'Contents/Resources/cua_node/bin/node'));
+if (!node || !fs.existsSync(node)) throw new Error('Provide ARTL_PORTABLE_NODE for the distributable macOS Node executable.');
+copyPortableNode(node, runtime);
+fs.copyFileSync(helper, path.join(runtime, 'rasta-ui'));
+const executable = path.join(output, 'Contents/MacOS/Rasta Setup'); fs.mkdirSync(path.dirname(executable), { recursive: true }); fs.copyFileSync(helper, executable);
+const artwork = fs.mkdtempSync(path.join(os.tmpdir(), 'rasta-artwork-'));
+try {
+    const iconset = path.join(artwork, 'Rasta.iconset'); fs.mkdirSync(iconset);
+    for (const size of [16, 32, 128, 256, 512]) {
+        for (const scale of [1, 2]) execFileSync(helper, ['--write-icon', path.join(iconset, `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`), String(size * scale)]);
+    }
+    execFileSync('/usr/bin/iconutil', ['-c', 'icns', '-o', path.join(output, 'Contents/Resources/Rasta.icns'), iconset]);
+} finally { fs.rmSync(artwork, { recursive: true, force: true }); }
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json')));
+const plist = path.join(output, 'Contents/Info.plist');
+fs.writeFileSync(plist, JSON.stringify({ CFBundleName: 'Rasta Setup', CFBundleDisplayName: `Rasta — RTL for ${target.name}`, CFBundleExecutable: 'Rasta Setup',
+    CFBundleIdentifier: target.id === 'codex' ? 'dev.rasta.setup' : `dev.rasta.${target.id}.setup`, CFBundleShortVersionString: pkg.version, CFBundleVersion: pkg.version,
+    CFBundlePackageType: 'APPL', CFBundleIconFile: 'Rasta.icns', LSMinimumSystemVersion: '13.5', LSUIElement: true, NSHighResolutionCapable: true }));
+execFileSync('/usr/bin/plutil', ['-convert', 'xml1', plist]);
+execFileSync('/usr/bin/codesign', ['--force', '--sign', identity, '--options', 'runtime', output]);
+execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', output]);
+console.log(output);
