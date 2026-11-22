@@ -494,7 +494,10 @@ int main(int argc, const char **argv) {
                         result[@"transcriptGeometry"] = paragraphGeometry(transcript, 0);
                         result[@"transcriptEndGeometry"] = paragraphGeometry(transcript, transcript.string.length - 1);
                         [window makeFirstResponder:composer];
-                        NSString *draftText = [@[rtlWord, rtlWord, rtlWord, rtlWord, rtlWord] componentsJoinedByString:@" "];
+                        // Measure alignment on lines with different widths and no trailing
+                        // wrap separator. TextKit versions account for that separator
+                        // differently in the typographic bounds of soft-wrapped lines.
+                        NSString *draftText = [NSString stringWithFormat:@"%@ %@\n%@", rtlWord, rtlWord, rtlWord];
                         [composer insertText:draftText replacementRange:NSMakeRange(0, 0)];
                         result[@"draft"] = messageStyle(composer, composer.string.length - 1);
                         result[@"draftGeometry"] = paragraphGeometry(composer, composer.string.length - 1);

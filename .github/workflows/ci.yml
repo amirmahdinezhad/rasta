@@ -32,6 +32,13 @@ jobs:
       - run: npm --prefix ui/manager run typecheck
       - run: npm run build:panel-ui
       - run: git diff --exit-code -- bin/panel/panel.js
+      - name: Install Electron test runtime
+        run: |
+          for delay in 0 5 15; do
+            if [ "$delay" -gt 0 ]; then sleep "$delay"; fi
+            if node node_modules/electron/install.js; then exit 0; fi
+          done
+          exit 1
       - run: npm run test:gui
       - run: ARTL_TEST_TARGET=t3 node test/gui-electron-smoke.mjs
       - run: npm run test:desktop
